@@ -17,7 +17,9 @@ public class SavePlayer implements MenuActionEntry{
     public void apply(Menu menu) {
         //--------| DATABASE
         try {
-             new Database().saveGame();
+           Database db = new Database();
+           db.saveGame();
+           db.setUpdate(true);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         } catch (SQLException e) {

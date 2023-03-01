@@ -19,7 +19,10 @@ public class Database {
     private Connection connection;
     private final Perso player;
 
+    private boolean update;
+
     public Database() throws ClassNotFoundException, SQLException {
+        this.update = false;
         this.player = App.getInstance().getPersonnage();
         this.connection = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/Dragon", "root", "123Campus");
@@ -54,13 +57,13 @@ public class Database {
             playerStatement.setInt(9, keys.getInt(1));
             playerStatement.executeUpdate();
         }
+
     }
 
     public void checkIfPlayerAlreadyExist() throws SQLException {
 
         String nameQuery = "SELECT * FROM `player` WHERE name= '" + this.player.getName() + "'";
 
-        //("+ "'idplayer'," +"'name',"+ "'type'," + "'power'," + "'thunderpotion'"+")
         PreparedStatement nameStatement = connection.prepareStatement(nameQuery);
         nameStatement.executeQuery();
         ResultSet resName = nameStatement.getResultSet();
@@ -93,11 +96,11 @@ public class Database {
         //Sauvegarde du joueur
         savePlayer(boardId);
 
-        for (int i=0; i<gameBoard.size(); i++) {
+        for (int i = 0; i < gameBoard.size(); i++) {
             if (gameBoard.get(i) instanceof MonsterCell) {
-               Monster monster =  ((MonsterCell) gameBoard.get(i)).getMonster();
-               int monsterId = saveMonster(monster);
-               saveMonsterCell(i, boardId, monsterId);
+                Monster monster = ((MonsterCell) gameBoard.get(i)).getMonster();
+                int monsterId = saveMonster(monster);
+                saveMonsterCell(i, boardId, monsterId);
             } else if (gameBoard.get(i) instanceof LootCell) {
                 int itemId = saveItem((LootCell) gameBoard.get(i));
                 saveLootCell(i, boardId, itemId);
@@ -110,22 +113,22 @@ public class Database {
     private void saveMonsterCell(int position, int boardId, int monsterId) throws SQLException {
         String monsterCellQuery = "INSERT INTO `cell_monster`" +
                 "(`cell_monster_id`,  `position`, `board_id`, `monster_id`)" +
-        "VALUES(?, ?, ?, ?)";
+                "VALUES(?, ?, ?, ?)";
         PreparedStatement monsterCellStatement = connection.prepareStatement(monsterCellQuery);
         monsterCellStatement.setNull(1, Types.INTEGER);
-        monsterCellStatement.setInt(2, position) ;
+        monsterCellStatement.setInt(2, position);
         monsterCellStatement.setInt(3, boardId);
         monsterCellStatement.setInt(4, monsterId);
         monsterCellStatement.executeUpdate();
     }
 
-    private int saveMonster(Monster monster) throws  SQLException {
+    private int saveMonster(Monster monster) throws SQLException {
         String monsterQuery = "INSERT INTO `monster`" +
                 "(`monster_id`,  `life`, `power`, `type`)" +
                 "VALUES(?, ?, ?, ?)";
         PreparedStatement monsterStatement = connection.prepareStatement(monsterQuery, Statement.RETURN_GENERATED_KEYS);
         monsterStatement.setNull(1, Types.INTEGER);
-        monsterStatement.setInt(2, monster.getLife()) ;
+        monsterStatement.setInt(2, monster.getLife());
         monsterStatement.setInt(3, monster.getPower());
         monsterStatement.setString(4, monster.getClass().getSimpleName());
         monsterStatement.executeUpdate();
@@ -141,13 +144,13 @@ public class Database {
                 "VALUES(?, ?, ?, ?)";
         PreparedStatement monsterCellStatement = connection.prepareStatement(lootCellQuery);
         monsterCellStatement.setNull(1, Types.INTEGER);
-        monsterCellStatement.setInt(2, position) ;
+        monsterCellStatement.setInt(2, position);
         monsterCellStatement.setInt(3, boardId);
         monsterCellStatement.setInt(4, itemId);
         monsterCellStatement.executeUpdate();
     }
 
-    private int saveItem(LootCell lootCell) throws  SQLException {
+    private int saveItem(LootCell lootCell) throws SQLException {
         Item item = lootCell.getAllItem();
         int k = 0;
 
@@ -158,7 +161,8 @@ public class Database {
                     "VALUES(?, ?, ?, ?, ?)";
             PreparedStatement itemStatement = connection.prepareStatement(itemQuery, Statement.RETURN_GENERATED_KEYS);
             itemStatement.setNull(1, Types.INTEGER);
-            itemStatement.setString(2, ((AttackItem) item).getName()); ;
+            itemStatement.setString(2, ((AttackItem) item).getName());
+            ;
             itemStatement.setInt(3, ((AttackItem) item).getStats());
             itemStatement.setString(4, ((AttackItem) item).getDescription());
             itemStatement.setBoolean(5, ((AttackItem) item).isSpeBonus());
@@ -173,7 +177,8 @@ public class Database {
                     "VALUES(?, ?, ?, ?, ?)";
             PreparedStatement itemStatement = connection.prepareStatement(itemQuery, Statement.RETURN_GENERATED_KEYS);
             itemStatement.setNull(1, Types.INTEGER);
-            itemStatement.setString(2, ((DefenseItem) item).getName()); ;
+            itemStatement.setString(2, ((DefenseItem) item).getName());
+            ;
             itemStatement.setInt(3, ((DefenseItem) item).getStats());
             itemStatement.setString(4, ((DefenseItem) item).getDescription());
             itemStatement.setBoolean(5, false);
@@ -182,13 +187,14 @@ public class Database {
             key.next();
             k = key.getInt(1);
 
-        } else if (item instanceof PotionItem){
+        } else if (item instanceof PotionItem) {
             String itemQuery = "INSERT INTO `items`" +
                     "(`item_id`,  `name`, `stats`, `description`, `spebonus`)" +
                     "VALUES(?, ?, ?, ?, ?)";
             PreparedStatement itemStatement = connection.prepareStatement(itemQuery, Statement.RETURN_GENERATED_KEYS);
             itemStatement.setNull(1, Types.INTEGER);
-            itemStatement.setString(2, "heal"); ;
+            itemStatement.setString(2, "heal");
+            ;
             itemStatement.setInt(3, ((PotionItem) item).getUp());
             itemStatement.setString(4, "life potion");
             itemStatement.setBoolean(5, false);
@@ -202,7 +208,8 @@ public class Database {
                     "VALUES(?, ?, ?, ?, ?)";
             PreparedStatement itemStatement = connection.prepareStatement(itemQuery, Statement.RETURN_GENERATED_KEYS);
             itemStatement.setNull(1, Types.INTEGER);
-            itemStatement.setString(2, "bonus"); ;
+            itemStatement.setString(2, "bonus");
+            ;
             itemStatement.setInt(3, 0);
             itemStatement.setString(4, "thunder potion");
             itemStatement.setBoolean(5, false);
@@ -215,11 +222,22 @@ public class Database {
     }
 
     private void saveEmptyCell(int position, int boardId) throws SQLException {
-        String emptyQuery = "INSERT INTO `cell_empty`" + "VALUES(?, ?, ?)";
+        String emptyQuery = null;
+        if (this.update) {
+            emptyQuery = "UPDATE `cell_empty`" + "SET (?,?,?)";
+        } else {
+            emptyQuery = "INSERT INTO `cell_empty`" + "VALUES(?,?,?)";
+
+        }
+
         PreparedStatement emptyCellStatement = connection.prepareStatement(emptyQuery);
         emptyCellStatement.setNull(1, Types.INTEGER);
         emptyCellStatement.setInt(2, position);
         emptyCellStatement.setInt(3, boardId);
         emptyCellStatement.executeUpdate();
+    }
+
+    public void setUpdate(boolean update) {
+        this.update = update;
     }
 }
